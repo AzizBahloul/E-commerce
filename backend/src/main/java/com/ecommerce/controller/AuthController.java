@@ -13,6 +13,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,27 +37,45 @@ public class AuthController {
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = jwtUtil.generateToken(loginRequest.getUsername());
-            return ResponseEntity.ok(new AuthResponse(token));
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("token", token);
+            response.put("message", "Login successful");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
     }
 
     @PostMapping("/logout")
-    public String logout() {
+    public ResponseEntity<?> logout() {
         SecurityContextHolder.clearContext();
-        return "Logged out successfully";
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Logged out successfully");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh-token")
-    public String refreshToken(@RequestBody String token) {
+    public ResponseEntity<?> refreshToken(@RequestBody String token) {
         String username = jwtUtil.extractUsername(token);
-        return jwtUtil.generateToken(username);
+        String newToken = jwtUtil.generateToken(username);
+        Map<String, String> response = new HashMap<>();
+        response.put("token", newToken);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
-    public User getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userService.findByUsername(username);
+    public ResponseEntity<?> getCurrentUser() {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User user = userService.findByUsername(username);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 }
