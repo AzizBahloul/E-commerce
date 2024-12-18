@@ -1,0 +1,6 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://azizbahloul3:aziz123@cluster0.6xuhq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+JWT_SECRET: 44hkbNR6fPPvlD8CeOFp7wieO0Qae6AYMce0dqsNThc=
+
